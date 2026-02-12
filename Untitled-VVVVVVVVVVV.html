@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Mini CNC Machine – Codes Sources</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            color: #e0e6ed;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0a1628 0%, #1a2332 50%, #0f1b2e 100%);
+        }
+
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 119, 204, 0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header with animation */
+        header {
+            text-align: center;
+            padding: 40px 15px 30px;
+            background: rgba(10, 22, 40, 0.7);
+            border-bottom: 3px solid #00d4ff;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            animation: slideDown 0.8s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 5vw, 3rem);
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.5));
+            }
+            to {
+                filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.8));
+            }
+        }
+
+        .subtitle {
+            font-size: clamp(0.9rem, 3vw, 1.3rem);
+            color: #a0aec0;
+            font-weight: 300;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        /* Team members section */
+        .team-section {
+            margin-top: 25px;
+            padding: 20px 15px;
+            background: rgba(0, 212, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .team-title {
+            font-size: clamp(1rem, 3vw, 1.1rem);
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .team-members {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .member {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, rgba(0, 119, 204, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            font-size: clamp(0.85rem, 2.5vw, 1rem);
+            color: #fff;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out backwards;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .member:nth-child(1) { animation-delay: 0.2s; }
+        .member:nth-child(2) { animation-delay: 0.4s; }
+        .member:nth-child(3) { animation-delay: 0.6s; }
+
+        .member:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Navigation tabs */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            animation: fadeIn 1s ease-out 0.5s backwards;
+            padding: 0 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .tab-btn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, rgba(26, 35, 50, 0.6) 0%, rgba(10, 22, 40, 0.6) 100%);
+            color: #a0aec0;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            font-size: clamp(0.95rem, 3vw, 1.1rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-width: 140px;
+            max-width: 250px;
+        }
+
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(0, 212, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .tab-btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .tab-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .tab-btn:active {
+            transform: scale(0.95);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #0077cc 0%, #00aaff 100%);
+            color: white;
+            border-color: #00d4ff;
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Code section with animation */
+        .code-section {
+            background: rgba(26, 35, 50, 0.8);
+            border-radius: 12px;
+            padding: 20px 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: none;
+            animation: slideInScale 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .code-section.active {
+            display: block;
+        }
+
+        @keyframes slideInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h2 {
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600;
+            border-left: 4px solid #00d4ff;
+            padding-left: 15px;
+            flex: 1;
+            min-width: 100%;
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, #0077cc 0%, #00aaff 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: clamp(0.95rem, 3vw, 1rem);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 119, 204, 0.4);
+            position: relative;
+            overflow: hidden;
+            min-height: 48px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .copy-btn::before {
+            content: '📋 ';
+            margin-right: 8px;
+        }
+
+        .copy-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .copy-btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        .copy-btn.copied {
+            background: linear-gradient(135deg, #00cc88 0%, #00ff99 100%);
+            box-shadow: 0 8px 25px rgba(0, 204, 136, 0.5);
+        }
+
+        .copy-btn.copied::before {
+            content: '✓ ';
+        }
+
+        .code-container {
+            background: #0d1117;
+            border-radius: 10px;
+            padding: 0;
+            border: 1px solid #30363d;
+            overflow: hidden;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        pre {
+            margin: 0;
+            padding: 20px 15px;
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 500px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: clamp(0.75rem, 2vw, 0.95rem);
+            line-height: 1.8;
+            color: #c9d1d9;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        code {
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        /* Syntax Highlighting Colors */
+        .keyword {
+            color: #ff79c6;
+            font-weight: 600;
+        }
+
+        .type {
+            color: #8be9fd;
+            font-weight: 500;
+        }
+
+        .function {
+            color: #50fa7b;
+            font-weight: 500;
+        }
+
+        .string {
+            color: #f1fa8c;
+        }
+
+        .number {
+            color: #bd93f9;
+        }
+
+        .comment {
+            color: #6272a4;
+            font-style: italic;
+        }
+
+        .preprocessor {
+            color: #ff6b9d;
+        }
+
+        .operator {
+            color: #ff79c6;
+        }
+
+        .class-name {
+            color: #ffb86c;
+            font-weight: 500;
+        }
+
+        .variable {
+            color: #f8f8f2;
+        }
+
+        .constant {
+            color: #bd93f9;
+        }
+
+        .bracket {
+            color: #f8f8f2;
+        }
+
+        /* Custom scrollbar */
+        pre::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        pre::-webkit-scrollbar-track {
+            background: #0d1117;
+            border-radius: 10px;
+        }
+
+        pre::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #30363d 0%, #484f58 100%);
+            border-radius: 10px;
+            border: 2px solid #0d1117;
+        }
+
+        pre::-webkit-scrollbar-thumb:active {
+            background: linear-gradient(135deg, #484f58 0%, #00d4ff 100%);
+        }
+
+        /* Footer with animation */
+        footer {
+            text-align: center;
+            padding: 30px 15px;
+            background: rgba(10, 22, 40, 0.7);
+            border-top: 3px solid #00d4ff;
+            margin-top: 40px;
+            color: #a0aec0;
+            font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+            backdrop-filter: blur(10px);
+            animation: slideUp 1s ease-out 1s backwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Floating particles effect - reduced on mobile */
+        .particle {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: #00d4ff;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 20s infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.3;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            header {
+                padding: 30px 15px 25px;
+                margin-bottom: 25px;
+            }
+
+            .team-section {
+                padding: 15px 12px;
+            }
+
+            .team-members {
+                gap: 10px;
+            }
+
+            .member {
+                padding: 10px 16px;
+                font-size: 0.85rem;
+                min-width: 100%;
+            }
+
+            .nav-tabs {
+                gap: 10px;
+                margin-bottom: 25px;
+            }
+
+            .tab-btn {
+                padding: 14px 20px;
+                min-width: 120px;
+                font-size: 0.95rem;
+            }
+
+            .code-section {
+                padding: 18px 12px;
+                border-radius: 10px;
+            }
+
+            .section-header {
+                gap: 12px;
+            }
+
+            h2 {
+                font-size: 1.4rem;
+                padding-left: 12px;
+                border-left-width: 3px;
+            }
+
+            .copy-btn {
+                padding: 13px 24px;
+                font-size: 0.95rem;
+                min-height: 46px;
+            }
+
+            pre {
+                padding: 16px 12px;
+                max-height: 400px;
+                font-size: 0.8rem;
+            }
+
+            footer {
+                padding: 25px 15px;
+                margin-top: 30px;
+            }
+
+            /* Reduce particles on mobile */
+            .particle {
+                display: none;
+            }
+
+            /* Disable hover effects on mobile */
+            .member:hover,
+            .tab-btn:hover,
+            .copy-btn:hover {
+                transform: none;
+                box-shadow: initial;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.6rem;
+                letter-spacing: 0.5px;
+            }
+
+            .subtitle {
+                font-size: 0.9rem;
+            }
+
+            .team-title {
+                font-size: 0.95rem;
+            }
+
+            .member {
+                font-size: 0.8rem;
+                padding: 9px 14px;
+            }
+
+            .tab-btn {
+                padding: 12px 18px;
+                font-size: 0.9rem;
+                min-width: 110px;
+            }
+
+            h2 {
+                font-size: 1.3rem;
+            }
+
+            pre {
+                font-size: 0.75rem;
+                padding: 14px 10px;
+                max-height: 350px;
+                line-height: 1.6;
+            }
+
+            .copy-btn {
+                font-size: 0.9rem;
+                padding: 12px 20px;
+            }
+        }
+
+        /* Landscape phone optimization */
+        @media (max-width: 900px) and (orientation: landscape) {
+            header {
+                padding: 20px 15px;
+            }
+
+            .team-section {
+                padding: 12px;
+            }
+
+            .team-members {
+                gap: 8px;
+            }
+
+            .member {
+                padding: 8px 14px;
+            }
+
+            pre {
+                max-height: 250px;
+            }
+        }
+
+        /* Tablet optimizations */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                padding: 18px;
+            }
+
+            .tab-btn {
+                min-width: 160px;
+            }
+
+            .code-section {
+                padding: 30px 25px;
+            }
+
+            pre {
+                padding: 25px 20px;
+                max-height: 550px;
+            }
+        }
+
+        /* High DPI screens */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            pre {
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    
+    <!-- Floating particles (hidden on mobile) -->
+    <script>
+        // Only create particles on larger screens
+        if (window.innerWidth > 768) {
+            for(let i = 0; i < 15; i++) {
+                let particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                document.body.appendChild(particle);
+            }
+        }
+    </script>
+
+    <header>
+        <h1>Mini Machine CNC</h1>
+        <p class="subtitle">Codes Sources & Implémentation Technique | Projet de Fin d'Études</p>
+        
+        <div class="team-section">
+            <div class="team-title">Réalisé par</div>
+            <div class="team-members">
+                <div class="member">AZNAG AYOUB</div>
+                <div class="member">ABD ELMATINE ELOMARI</div>
+                <div class="member">ELMOUDNI MOUHAMED</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="showCode('arduino')">
+                <span>💻 Code Arduino</span>
+            </button>
+            <button class="tab-btn" onclick="showCode('processing')">
+                <span>⚙️ Code Processing 3</span>
+            </button>
+        </div>
+
+        <!-- Arduino Code Section -->
+        <section class="code-section active" id="arduino-section">
+            <div class="section-header">
+                <h2>Code Arduino</h2>
+                <button class="copy-btn" onclick="copyCode('arduino-code')">Copier le Code</button>
+            </div>
+            <div class="code-container">
+                <pre id="arduino-code"><code><span class="preprocessor">#include</span> <span class="string">&lt;Servo.h&gt;</span>
+<span class="preprocessor">#include</span> <span class="string">&lt;AFMotor.h&gt;</span>
+
+<span class="class-name">AF_Stepper</span> <span class="variable">motory</span><span class="bracket">(</span><span class="number">48</span>, <span class="number">1</span><span class="bracket">)</span>;
+<span class="class-name">AF_Stepper</span> <span class="variable">motorx</span><span class="bracket">(</span><span class="number">48</span>, <span class="number">2</span><span class="bracket">)</span>;
+<span class="class-name">Servo</span> <span class="variable">servo</span>;
+
+<span class="preprocessor">#define</span> <span class="constant">penup</span> <span class="number">115</span>
+<span class="preprocessor">#define</span> <span class="constant">pendown</span> <span class="number">160</span>
+<span class="preprocessor">#define</span> <span class="constant">Spin</span> <span class="number">9</span>
+
+<span class="comment">//Structures, global variables</span>
+<span class="keyword">struct</span> <span class="type">point</span> <span class="bracket">{</span>
+  <span class="type">float</span> <span class="variable">x</span>;
+  <span class="type">float</span> <span class="variable">y</span>;
+  <span class="type">float</span> <span class="variable">z</span>;
+<span class="bracket">}</span>;
+
+<span class="comment">//Current position of plothead</span>
+<span class="keyword">struct</span> <span class="type">point</span> <span class="variable">actuatorPos</span>;
+
+<span class="comment">//Drawing settings, should be OK</span>
+<span class="type">float</span> <span class="variable">StepInc</span> <span class="operator">=</span> <span class="number">1</span>;
+<span class="type">int</span> <span class="variable">StepDelay</span> <span class="operator">=</span> <span class="number">1</span>;
+<span class="type">int</span> <span class="variable">LineDelay</span> <span class="operator">=</span> <span class="number">0</span>;
+
+<span class="comment">//Steps per width and height of the drawing area</span>
+<span class="type">float</span> <span class="variable">StepsPerMillimeterX</span> <span class="operator">=</span> <span class="number">164.0</span>;
+<span class="type">float</span> <span class="variable">StepsPerMillimeterY</span> <span class="operator">=</span> <span class="number">250.0</span>;
+
+<span class="comment">//Max and min values of the drawing area(mm)</span>
+<span class="type">float</span> <span class="variable">Xmin</span> <span class="operator">=</span> <span class="number">0</span>;
+<span class="type">float</span> <span class="variable">Xmax</span> <span class="operator">=</span> <span class="number">38</span>;
+<span class="type">float</span> <span class="variable">Ymin</span> <span class="operator">=</span> <span class="number">0</span>;
+<span class="type">float</span> <span class="variable">Ymax</span> <span class="operator">=</span> <span class="number">38</span>;
+<span class="type">float</span> <span class="variable">Zmin</span> <span class="operator">=</span> <span class="number">0</span>;
+<span class="type">float</span> <span class="variable">Zmax</span> <span class="operator">=</span> <span class="number">1</span>;
+
+<span class="type">float</span> <span class="variable">Xpos</span> <span class="operator">=</span> <span class="variable">Xmin</span>;
+<span class="type">float</span> <span class="variable">Ypos</span> <span class="operator">=</span> <span class="variable">Ymin</span>;
+<span class="type">float</span> <span class="variable">Zpos</span> <span class="operator">=</span> <span class="variable">Zmax</span>;
+
+<span class="comment">// Set to true to get debug output.</span>
+<span class="type">boolean</span> <span class="variable">verbose</span> <span class="operator">=</span> <span class="keyword">false</span>;
+
+
+<span class="keyword">void</span> <span class="function">setup</span><span class="bracket">()</span> <span class="bracket">{</span>
+  <span class="class-name">Serial</span>.<span class="function">begin</span><span class="bracket">(</span> <span class="number">9600</span> <span class="bracket">)</span>;
+  <span class="variable">servo</span>.<span class="function">attach</span><span class="bracket">(</span><span class="constant">Spin</span><span class="bracket">)</span>;
+  <span class="variable">servo</span>.<span class="function">write</span><span class="bracket">(</span><span class="constant">penup</span><span class="bracket">)</span>;
+  <span class="function">delay</span><span class="bracket">(</span><span class="number">100</span><span class="bracket">)</span>;
+  <span class="variable">motorx</span>.<span class="function">setSpeed</span><span class="bracket">(</span><span class="number">600</span><span class="bracket">)</span>;
+  <span class="variable">motory</span>.<span class="function">setSpeed</span><span class="bracket">(</span><span class="number">600</span><span class="bracket">)</span>;
+  <span class="class-name">Serial</span>.<span class="function">println</span><span class="bracket">(</span><span class="string">"Your CNC machine is ready..."</span><span class="bracket">)</span>;
+<span class="bracket">}</span>
+
+<span class="keyword">void</span> <span class="function">loop</span><span class="bracket">()</span> <span class="bracket">{</span>
+  <span class="function">delay</span><span class="bracket">(</span><span class="number">100</span><span class="bracket">)</span>;
+  <span class="type">char</span> <span class="variable">line</span><span class="bracket">[</span><span class="number">512</span><span class="bracket">]</span>;
+  <span class="type">char</span> <span class="variable">c</span>;
+  <span class="type">int</span> <span class="variable">lineIndex</span>;
+  <span class="type">bool</span> <span class="variable">lineIsComment</span>, <span class="variable">lineSemiColon</span>;
+
+  <span class="variable">lineIndex</span> <span class="operator">=</span> <span class="number">0</span>;
+  <span class="variable">lineSemiColon</span> <span class="operator">=</span> <span class="keyword">false</span>;
+  <span class="variable">lineIsComment</span> <span class="operator">=</span> <span class="keyword">false</span>;
+
+  <span class="keyword">while</span> <span class="bracket">(</span><span class="number">1</span><span class="bracket">)</span> <span class="bracket">{</span>
+
+    <span class="comment">// Serial reception - Mostly from Grbl, added semicolon support</span>
+    <span class="keyword">while</span> <span class="bracket">(</span> <span class="class-name">Serial</span>.<span class="function">available</span><span class="bracket">()</span> <span class="operator">&gt;</span> <span class="number">0</span> <span class="bracket">)</span> <span class="bracket">{</span>
+      <span class="variable">c</span> <span class="operator">=</span> <span class="class-name">Serial</span>.<span class="function">read</span><span class="bracket">()</span>;
+      <span class="keyword">if</span> <span class="bracket">((</span> <span class="variable">c</span> <span class="operator">==</span> <span class="string">'\n'</span><span class="bracket">)</span> <span class="operator">||</span> <span class="bracket">(</span><span class="variable">c</span> <span class="operator">==</span> <span class="string">'\r'</span><span class="bracket">)</span> <span class="bracket">)</span> <span class="bracket">{</span>             <span class="comment">// End of line reached</span>
+        <span class="keyword">if</span> <span class="bracket">(</span> <span class="variable">lineIndex</span> <span class="operator">&gt;</span> <span class="number">0</span> <span class="bracket">)</span> <span class="bracket">{</span>                        <span class="comment">// Line is complete. Then execute!</span>
+          <span class="variable">line</span><span class="bracket">[</span> <span class="variable">lineIndex</span> <span class="bracket">]</span> <span class="operator">=</span> <span class="string">'\0'</span>;                   <span class="comment">// Terminate string</span>
+          <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">verbose</span><span class="bracket">)</span> <span class="bracket">{</span>
+            <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span> <span class="string">"Received : "</span><span class="bracket">)</span>;
+            <span class="class-name">Serial</span>.<span class="function">println</span><span class="bracket">(</span> <span class="variable">line</span> <span class="bracket">)</span>;
+          <span class="bracket">}</span>
+          <span class="function">processIncomingLine</span><span class="bracket">(</span> <span class="variable">line</span>, <span class="variable">lineIndex</span> <span class="bracket">)</span>;
+          <span class="variable">lineIndex</span> <span class="operator">=</span> <span class="number">0</span>;
+        <span class="bracket">}</span>
+        <span class="keyword">else</span> <span class="bracket">{</span>
+          <span class="comment">// Empty or comment line. Skip block.</span>
+        <span class="bracket">}</span>
+        <span class="variable">lineIsComment</span> <span class="operator">=</span> <span class="keyword">false</span>;
+        <span class="variable">lineSemiColon</span> <span class="operator">=</span> <span class="keyword">false</span>;
+        <span class="class-name">Serial</span>.<span class="function">println</span><span class="bracket">(</span><span class="string">"ok"</span><span class="bracket">)</span>;
+      <span class="bracket">}</span>
+      <span class="keyword">else</span> <span class="bracket">{</span>
+        <span class="keyword">if</span> <span class="bracket">(</span> <span class="bracket">(</span><span class="variable">lineIsComment</span><span class="bracket">)</span> <span class="operator">||</span> <span class="bracket">(</span><span class="variable">lineSemiColon</span><span class="bracket">)</span> <span class="bracket">)</span> <span class="bracket">{</span>   <span class="comment">// Throw away all comment characters</span>
+          <span class="keyword">if</span> <span class="bracket">(</span> <span class="variable">c</span> <span class="operator">==</span> <span class="string">')'</span> <span class="bracket">)</span>  <span class="variable">lineIsComment</span> <span class="operator">=</span> <span class="keyword">false</span>;     <span class="comment">// End of comment. Resume line.</span>
+        <span class="bracket">}</span>
+        <span class="keyword">else</span> <span class="bracket">{</span>
+          <span class="keyword">if</span> <span class="bracket">(</span> <span class="variable">c</span> <span class="operator">&lt;=</span> <span class="string">' '</span> <span class="bracket">)</span> <span class="bracket">{</span>                           <span class="comment">// Throw away whitepace and control characters</span>
+          <span class="bracket">}</span>
+          <span class="keyword">else if</span> <span class="bracket">(</span> <span class="variable">c</span> <span class="operator">==</span> <span class="string">'/'</span> <span class="bracket">)</span> <span class="bracket">{</span>                    <span class="comment">// Block delete not supported. Ignore character.</span>
+          <span class="bracket">}</span>
+          <span class="keyword">else if</span> <span class="bracket">(</span> <span class="variable">c</span> <span class="operator">==</span> <span class="string">'('</span> <span class="bracket">)</span> <span class="bracket">{</span>                    <span class="comment">// Enable comments flag and ignore all characters until ')' or EOL.</span>
+            <span class="variable">lineIsComment</span> <span class="operator">=</span> <span class="keyword">true</span>;
+          <span class="bracket">}</span>
+          <span class="keyword">else if</span> <span class="bracket">(</span> <span class="variable">c</span> <span class="operator">==</span> <span class="string">';'</span> <span class="bracket">)</span> <span class="bracket">{</span>
+            <span class="variable">lineSemiColon</span> <span class="operator">=</span> <span class="keyword">true</span>;
+          <span class="bracket">}</span>
+          <span class="keyword">else if</span> <span class="bracket">(</span> <span class="variable">lineIndex</span> <span class="operator">&gt;=</span> <span class="number">512</span> <span class="operator">-</span> <span class="number">1</span> <span class="bracket">)</span> <span class="bracket">{</span>
+            <span class="class-name">Serial</span>.<span class="function">println</span><span class="bracket">(</span> <span class="string">"ERROR - lineBuffer overflow"</span> <span class="bracket">)</span>;
+            <span class="variable">lineIsComment</span> <span class="operator">=</span> <span class="keyword">false</span>;
+            <span class="variable">lineSemiColon</span> <span class="operator">=</span> <span class="keyword">false</span>;
+          <span class="bracket">}</span>
+          <span class="keyword">else if</span> <span class="bracket">(</span> <span class="variable">c</span> <span class="operator">&gt;=</span> <span class="string">'a'</span> <span class="operator">&amp;&amp;</span> <span class="variable">c</span> <span class="operator">&lt;=</span> <span class="string">'z'</span> <span class="bracket">)</span> <span class="bracket">{</span>        <span class="comment">// Upcase lowercase</span>
+            <span class="variable">line</span><span class="bracket">[</span> <span class="variable">lineIndex</span><span class="operator">++</span> <span class="bracket">]</span> <span class="operator">=</span> <span class="variable">c</span> <span class="operator">-</span> <span class="string">'a'</span> <span class="operator">+</span> <span class="string">'A'</span>;
+          <span class="bracket">}</span>
+          <span class="keyword">else</span> <span class="bracket">{</span>
+            <span class="variable">line</span><span class="bracket">[</span> <span class="variable">lineIndex</span><span class="operator">++</span> <span class="bracket">]</span> <span class="operator">=</span> <span class="variable">c</span>;
+          <span class="bracket">}</span>
+        <span class="bracket">}</span>
+      <span class="bracket">}</span>
+    <span class="bracket">}</span>
+  <span class="bracket">}</span>
+<span class="bracket">}</span>
+
+<span class="keyword">void</span> <span class="function">processIncomingLine</span><span class="bracket">(</span> <span class="type">char</span><span class="operator">*</span> <span class="variable">line</span>, <span class="type">int</span> <span class="variable">charNB</span> <span class="bracket">)</span> <span class="bracket">{</span>
+  <span class="type">int</span> <span class="variable">currentIndex</span> <span class="operator">=</span> <span class="number">0</span>;
+  <span class="type">char</span> <span class="variable">buffer</span><span class="bracket">[</span> <span class="number">64</span> <span class="bracket">]</span>;                                 <span class="comment">// Hope that 64 is enough for 1 parameter</span>
+  <span class="keyword">struct</span> <span class="type">point</span> <span class="variable">newPos</span>;
+
+  <span class="variable">newPos</span>.<span class="variable">x</span> <span class="operator">=</span> <span class="number">0.0</span>;
+  <span class="variable">newPos</span>.<span class="variable">y</span> <span class="operator">=</span> <span class="number">0.0</span>;
+
+  <span class="keyword">while</span> <span class="bracket">(</span> <span class="variable">currentIndex</span> <span class="operator">&lt;</span> <span class="variable">charNB</span> <span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="keyword">switch</span> <span class="bracket">(</span> <span class="variable">line</span><span class="bracket">[</span> <span class="variable">currentIndex</span><span class="operator">++</span> <span class="bracket">]</span> <span class="bracket">)</span> <span class="bracket">{</span>              <span class="comment">// Select command, if any</span>
+      <span class="keyword">case</span> <span class="string">'U'</span>:
+        <span class="function">penUp</span><span class="bracket">()</span>;
+        <span class="keyword">break</span>;
+      <span class="keyword">case</span> <span class="string">'D'</span>:
+        <span class="function">penDown</span><span class="bracket">()</span>;
+        <span class="keyword">break</span>;
+      <span class="keyword">case</span> <span class="string">'G'</span>:
+        <span class="variable">buffer</span><span class="bracket">[</span><span class="number">0</span><span class="bracket">]</span> <span class="operator">=</span> <span class="variable">line</span><span class="bracket">[</span> <span class="variable">currentIndex</span><span class="operator">++</span> <span class="bracket">]</span>;          <span class="comment">// /!\ Dirty - Only works with 2 digit commands</span>
+        <span class="variable">buffer</span><span class="bracket">[</span><span class="number">1</span><span class="bracket">]</span> <span class="operator">=</span> <span class="string">'\0'</span>;
+
+        <span class="keyword">switch</span> <span class="bracket">(</span> <span class="function">atoi</span><span class="bracket">(</span> <span class="variable">buffer</span> <span class="bracket">)</span> <span class="bracket">)</span> <span class="bracket">{</span>                  <span class="comment">// Select G command</span>
+          <span class="keyword">case</span> <span class="number">0</span>:                                   <span class="comment">// G00 &amp; G01 - Movement or fast movement. Same here</span>
+          <span class="keyword">case</span> <span class="number">1</span>:
+            <span class="comment">// /!\ Dirty - Suppose that X is before Y</span>
+            <span class="type">char</span><span class="operator">*</span> <span class="variable">indexX</span> <span class="operator">=</span> <span class="function">strchr</span><span class="bracket">(</span> <span class="variable">line</span> <span class="operator">+</span> <span class="variable">currentIndex</span>, <span class="string">'X'</span> <span class="bracket">)</span>; <span class="comment">// Get X/Y position in the string (if any)</span>
+            <span class="type">char</span><span class="operator">*</span> <span class="variable">indexY</span> <span class="operator">=</span> <span class="function">strchr</span><span class="bracket">(</span> <span class="variable">line</span> <span class="operator">+</span> <span class="variable">currentIndex</span>, <span class="string">'Y'</span> <span class="bracket">)</span>;
+            <span class="keyword">if</span> <span class="bracket">(</span> <span class="variable">indexY</span> <span class="operator">&lt;=</span> <span class="number">0</span> <span class="bracket">)</span> <span class="bracket">{</span>
+              <span class="variable">newPos</span>.<span class="variable">x</span> <span class="operator">=</span> <span class="function">atof</span><span class="bracket">(</span> <span class="variable">indexX</span> <span class="operator">+</span> <span class="number">1</span><span class="bracket">)</span>;
+              <span class="variable">newPos</span>.<span class="variable">y</span> <span class="operator">=</span> <span class="variable">actuatorPos</span>.<span class="variable">y</span>;
+            <span class="bracket">}</span>
+            <span class="keyword">else if</span> <span class="bracket">(</span> <span class="variable">indexX</span> <span class="operator">&lt;=</span> <span class="number">0</span> <span class="bracket">)</span> <span class="bracket">{</span>
+              <span class="variable">newPos</span>.<span class="variable">y</span> <span class="operator">=</span> <span class="function">atof</span><span class="bracket">(</span> <span class="variable">indexY</span> <span class="operator">+</span> <span class="number">1</span><span class="bracket">)</span>;
+              <span class="variable">newPos</span>.<span class="variable">x</span> <span class="operator">=</span> <span class="variable">actuatorPos</span>.<span class="variable">x</span>;
+            <span class="bracket">}</span>
+            <span class="keyword">else</span> <span class="bracket">{</span>
+              <span class="variable">newPos</span>.<span class="variable">y</span> <span class="operator">=</span> <span class="function">atof</span><span class="bracket">(</span> <span class="variable">indexY</span> <span class="operator">+</span> <span class="number">1</span><span class="bracket">)</span>;
+              <span class="variable">indexY</span> <span class="operator">=</span> <span class="string">'\0'</span>;
+              <span class="variable">newPos</span>.<span class="variable">x</span> <span class="operator">=</span> <span class="function">atof</span><span class="bracket">(</span> <span class="variable">indexX</span> <span class="operator">+</span> <span class="number">1</span><span class="bracket">)</span>;
+            <span class="bracket">}</span>
+            <span class="function">drawLine</span><span class="bracket">(</span><span class="variable">newPos</span>.<span class="variable">x</span>, <span class="variable">newPos</span>.<span class="variable">y</span> <span class="bracket">)</span>;
+            <span class="variable">actuatorPos</span>.<span class="variable">x</span> <span class="operator">=</span> <span class="variable">newPos</span>.<span class="variable">x</span>;
+            <span class="variable">actuatorPos</span>.<span class="variable">y</span> <span class="operator">=</span> <span class="variable">newPos</span>.<span class="variable">y</span>;
+            <span class="keyword">break</span>;
+        <span class="bracket">}</span>
+        <span class="keyword">break</span>;
+      <span class="keyword">case</span> <span class="string">'M'</span>:
+        <span class="variable">buffer</span><span class="bracket">[</span><span class="number">0</span><span class="bracket">]</span> <span class="operator">=</span> <span class="variable">line</span><span class="bracket">[</span> <span class="variable">currentIndex</span><span class="operator">++</span> <span class="bracket">]</span>;        <span class="comment">// /!\ Dirty - Only works with 3 digit commands</span>
+        <span class="variable">buffer</span><span class="bracket">[</span><span class="number">1</span><span class="bracket">]</span> <span class="operator">=</span> <span class="variable">line</span><span class="bracket">[</span> <span class="variable">currentIndex</span><span class="operator">++</span> <span class="bracket">]</span>;
+        <span class="variable">buffer</span><span class="bracket">[</span><span class="number">2</span><span class="bracket">]</span> <span class="operator">=</span> <span class="variable">line</span><span class="bracket">[</span> <span class="variable">currentIndex</span><span class="operator">++</span> <span class="bracket">]</span>;
+        <span class="variable">buffer</span><span class="bracket">[</span><span class="number">3</span><span class="bracket">]</span> <span class="operator">=</span> <span class="string">'\0'</span>;
+        <span class="keyword">switch</span> <span class="bracket">(</span> <span class="function">atoi</span><span class="bracket">(</span> <span class="variable">buffer</span> <span class="bracket">)</span> <span class="bracket">)</span> <span class="bracket">{</span>
+          <span class="keyword">case</span> <span class="number">300</span>:
+            <span class="bracket">{</span>
+              <span class="type">char</span><span class="operator">*</span> <span class="variable">indexS</span> <span class="operator">=</span> <span class="function">strchr</span><span class="bracket">(</span> <span class="variable">line</span> <span class="operator">+</span> <span class="variable">currentIndex</span>, <span class="string">'S'</span> <span class="bracket">)</span>;
+              <span class="type">float</span> <span class="variable">Spos</span> <span class="operator">=</span> <span class="function">atof</span><span class="bracket">(</span> <span class="variable">indexS</span> <span class="operator">+</span> <span class="number">1</span><span class="bracket">)</span>;
+              <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">Spos</span> <span class="operator">==</span> <span class="number">30</span><span class="bracket">)</span> <span class="bracket">{</span>
+                <span class="function">penDown</span><span class="bracket">()</span>;
+              <span class="bracket">}</span>
+              <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">Spos</span> <span class="operator">==</span> <span class="number">50</span><span class="bracket">)</span> <span class="bracket">{</span>
+                <span class="function">penUp</span><span class="bracket">()</span>;
+              <span class="bracket">}</span>
+              <span class="keyword">break</span>;
+            <span class="bracket">}</span>
+          <span class="keyword">case</span> <span class="number">114</span>:                                <span class="comment">// M114 - Repport position</span>
+            <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span> <span class="string">"Absolute position : X = "</span> <span class="bracket">)</span>;
+            <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span> <span class="variable">actuatorPos</span>.<span class="variable">x</span> <span class="bracket">)</span>;
+            <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span> <span class="string">"  -  Y = "</span> <span class="bracket">)</span>;
+            <span class="class-name">Serial</span>.<span class="function">println</span><span class="bracket">(</span> <span class="variable">actuatorPos</span>.<span class="variable">y</span> <span class="bracket">)</span>;
+            <span class="keyword">break</span>;
+          <span class="keyword">default</span>:
+            <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span> <span class="string">"Command not recognized : M"</span><span class="bracket">)</span>;
+            <span class="class-name">Serial</span>.<span class="function">println</span><span class="bracket">(</span> <span class="variable">buffer</span> <span class="bracket">)</span>;
+        <span class="bracket">}</span>
+    <span class="bracket">}</span>
+  <span class="bracket">}</span>
+<span class="bracket">}</span>
+
+<span class="comment">//lines drawing function</span>
+<span class="keyword">void</span> <span class="function">drawLine</span><span class="bracket">(</span><span class="type">float</span> <span class="variable">x1</span>, <span class="type">float</span> <span class="variable">y1</span><span class="bracket">)</span> <span class="bracket">{</span>
+
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">verbose</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="string">"fx1, fy1: "</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="variable">x1</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="string">","</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="variable">y1</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">println</span><span class="bracket">(</span><span class="string">""</span><span class="bracket">)</span>;
+  <span class="bracket">}</span>
+
+  <span class="variable">y1</span> <span class="operator">=</span> <span class="variable">y1</span> <span class="operator">*</span> <span class="operator">-</span><span class="number">1</span>;
+
+  <span class="comment">//  Bring instructions within limits</span>
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">x1</span> <span class="operator">&gt;=</span> <span class="variable">Xmax</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="variable">x1</span> <span class="operator">=</span> <span class="variable">Xmax</span>;
+  <span class="bracket">}</span>
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">x1</span> <span class="operator">&lt;=</span> <span class="variable">Xmin</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="variable">x1</span> <span class="operator">=</span> <span class="variable">Xmin</span>;
+  <span class="bracket">}</span>
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">y1</span> <span class="operator">&gt;=</span> <span class="variable">Ymax</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="variable">y1</span> <span class="operator">=</span> <span class="variable">Ymax</span>;
+  <span class="bracket">}</span>
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">y1</span> <span class="operator">&lt;=</span> <span class="variable">Ymin</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="variable">y1</span> <span class="operator">=</span> <span class="variable">Ymin</span>;
+  <span class="bracket">}</span>
+
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">verbose</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="string">"Xpos, Ypos: "</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="variable">Xpos</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="string">","</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="variable">Ypos</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">println</span><span class="bracket">(</span><span class="string">""</span><span class="bracket">)</span>;
+  <span class="bracket">}</span>
+
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">verbose</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="string">"x1, y1: "</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="variable">x1</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="string">","</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="variable">y1</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">println</span><span class="bracket">(</span><span class="string">""</span><span class="bracket">)</span>;
+  <span class="bracket">}</span>
+
+  <span class="comment">//  Convert coordinates to steps</span>
+  <span class="variable">x1</span> <span class="operator">=</span> <span class="bracket">(</span><span class="type">int</span><span class="bracket">)(</span><span class="variable">x1</span> <span class="operator">*</span> <span class="variable">StepsPerMillimeterX</span> <span class="operator">/</span> <span class="number">2</span><span class="bracket">)</span>;
+  <span class="variable">y1</span> <span class="operator">=</span> <span class="bracket">(</span><span class="type">int</span><span class="bracket">)(</span><span class="variable">y1</span> <span class="operator">*</span> <span class="variable">StepsPerMillimeterY</span> <span class="operator">/</span> <span class="number">2</span><span class="bracket">)</span>;
+  <span class="type">float</span> <span class="variable">x0</span> <span class="operator">=</span> <span class="variable">Xpos</span>;
+  <span class="type">float</span> <span class="variable">y0</span> <span class="operator">=</span> <span class="variable">Ypos</span>;
+
+  <span class="comment">//  Let's find out the change for the coordinates</span>
+  <span class="type">long</span> <span class="variable">dx</span> <span class="operator">=</span> <span class="function">abs</span><span class="bracket">(</span><span class="variable">x1</span> <span class="operator">-</span> <span class="variable">x0</span><span class="bracket">)</span>;
+  <span class="type">long</span> <span class="variable">dy</span> <span class="operator">=</span> <span class="function">abs</span><span class="bracket">(</span><span class="variable">y1</span> <span class="operator">-</span> <span class="variable">y0</span><span class="bracket">)</span>;
+  <span class="type">int</span> <span class="variable">sx</span> <span class="operator">=</span> <span class="variable">x0</span> <span class="operator">&lt;</span> <span class="variable">x1</span> <span class="operator">?</span> <span class="variable">StepInc</span> : <span class="operator">-</span><span class="variable">StepInc</span>;
+  <span class="type">int</span> <span class="variable">sy</span> <span class="operator">=</span> <span class="variable">y0</span> <span class="operator">&lt;</span> <span class="variable">y1</span> <span class="operator">?</span> <span class="variable">StepInc</span> : <span class="operator">-</span><span class="variable">StepInc</span>;
+
+  <span class="type">long</span> <span class="variable">i</span>;
+  <span class="type">long</span> <span class="variable">over</span> <span class="operator">=</span> <span class="number">0</span>;
+
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">dx</span> <span class="operator">&gt;</span> <span class="variable">dy</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="keyword">for</span> <span class="bracket">(</span><span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; <span class="variable">i</span> <span class="operator">&lt;</span> <span class="variable">dx</span>; <span class="operator">++</span><span class="variable">i</span><span class="bracket">)</span> <span class="bracket">{</span>
+      <span class="variable">motorx</span>.<span class="function">onestep</span><span class="bracket">(</span><span class="variable">sx</span>, <span class="constant">MICROSTEP</span><span class="bracket">)</span>;
+      <span class="variable">over</span> <span class="operator">+=</span> <span class="variable">dy</span>;
+      <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">over</span> <span class="operator">&gt;=</span> <span class="variable">dx</span><span class="bracket">)</span> <span class="bracket">{</span>
+        <span class="variable">over</span> <span class="operator">-=</span> <span class="variable">dx</span>;
+        <span class="variable">motory</span>.<span class="function">onestep</span><span class="bracket">(</span><span class="variable">sy</span>, <span class="constant">MICROSTEP</span><span class="bracket">)</span>;
+      <span class="bracket">}</span>
+      <span class="function">delay</span><span class="bracket">(</span><span class="variable">StepDelay</span><span class="bracket">)</span>;
+    <span class="bracket">}</span>
+  <span class="bracket">}</span> <span class="keyword">else</span> <span class="bracket">{</span>
+    <span class="keyword">for</span> <span class="bracket">(</span><span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; <span class="variable">i</span> <span class="operator">&lt;</span> <span class="variable">dy</span>; <span class="operator">++</span><span class="variable">i</span><span class="bracket">)</span> <span class="bracket">{</span>
+      <span class="variable">motory</span>.<span class="function">onestep</span><span class="bracket">(</span><span class="variable">sy</span>, <span class="constant">MICROSTEP</span><span class="bracket">)</span>;
+      <span class="variable">over</span> <span class="operator">+=</span> <span class="variable">dx</span>;
+      <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">over</span> <span class="operator">&gt;=</span> <span class="variable">dy</span><span class="bracket">)</span> <span class="bracket">{</span>
+        <span class="variable">over</span> <span class="operator">-=</span> <span class="variable">dy</span>;
+        <span class="variable">motorx</span>.<span class="function">onestep</span><span class="bracket">(</span><span class="variable">sx</span>, <span class="constant">MICROSTEP</span><span class="bracket">)</span>;
+      <span class="bracket">}</span>
+      <span class="function">delay</span><span class="bracket">(</span><span class="variable">StepDelay</span><span class="bracket">)</span>;
+    <span class="bracket">}</span>
+  <span class="bracket">}</span>
+
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">verbose</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="string">"dx, dy:"</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="variable">dx</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="string">","</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="variable">dy</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">println</span><span class="bracket">(</span><span class="string">""</span><span class="bracket">)</span>;
+  <span class="bracket">}</span>
+
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">verbose</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="string">"Going to ("</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="variable">x0</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="string">","</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">print</span><span class="bracket">(</span><span class="variable">y0</span><span class="bracket">)</span>;
+    <span class="class-name">Serial</span>.<span class="function">println</span><span class="bracket">(</span><span class="string">")"</span><span class="bracket">)</span>;
+  <span class="bracket">}</span>
+
+  <span class="comment">//  Delay before any next lines are submitted</span>
+  <span class="function">delay</span><span class="bracket">(</span><span class="variable">LineDelay</span><span class="bracket">)</span>;
+  <span class="comment">//  Update the positions</span>
+  <span class="variable">Xpos</span> <span class="operator">=</span> <span class="variable">x1</span>;
+  <span class="variable">Ypos</span> <span class="operator">=</span> <span class="variable">y1</span>;
+<span class="bracket">}</span>
+
+
+<span class="keyword">void</span> <span class="function">penUp</span><span class="bracket">()</span> <span class="bracket">{</span>
+  <span class="variable">servo</span>.<span class="function">write</span><span class="bracket">(</span><span class="constant">penup</span><span class="bracket">)</span>;
+  <span class="function">delay</span><span class="bracket">(</span><span class="number">50</span><span class="bracket">)</span>;
+  <span class="variable">Zpos</span> <span class="operator">=</span> <span class="variable">Zmax</span>;
+<span class="bracket">}</span>
+
+<span class="keyword">void</span> <span class="function">penDown</span><span class="bracket">()</span> <span class="bracket">{</span>
+  <span class="variable">servo</span>.<span class="function">write</span><span class="bracket">(</span><span class="constant">pendown</span><span class="bracket">)</span>;
+  <span class="function">delay</span><span class="bracket">(</span><span class="number">50</span><span class="bracket">)</span>;
+  <span class="variable">Zpos</span> <span class="operator">=</span> <span class="variable">Zmin</span>;
+<span class="bracket">}</span></code></pre>
+            </div>
+        </section>
+
+        <!-- Processing 3 Code Section -->
+        <section class="code-section" id="processing-section">
+            <div class="section-header">
+                <h2>Code Processing 3</h2>
+                <button class="copy-btn" onclick="copyCode('processing-code')">Copier le Code</button>
+            </div>
+            <div class="code-container">
+                <pre id="processing-code"><code><span class="keyword">import</span> <span class="class-name">java.awt.event.KeyEvent</span>;
+<span class="keyword">import</span> <span class="class-name">javax.swing.JOptionPane</span>;
+<span class="keyword">import</span> <span class="class-name">processing.serial.*</span>;
+
+<span class="class-name">Serial</span> <span class="variable">port</span> <span class="operator">=</span> <span class="keyword">null</span>;
+<span class="class-name">String</span> <span class="variable">portname</span> <span class="operator">=</span> <span class="keyword">null</span>;
+<span class="type">boolean</span> <span class="variable">streaming</span> <span class="operator">=</span> <span class="keyword">false</span>;
+<span class="type">float</span> <span class="variable">speed</span> <span class="operator">=</span> <span class="number">0.001</span>;
+<span class="class-name">String</span><span class="bracket">[]</span> <span class="variable">gcode</span>;
+<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>;
+
+<span class="keyword">void</span> <span class="function">openSerialPort</span><span class="bracket">()</span><span class="bracket">{</span>
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">portname</span> <span class="operator">==</span> <span class="keyword">null</span><span class="bracket">)</span> <span class="keyword">return</span>;
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">port</span> <span class="operator">!=</span> <span class="keyword">null</span><span class="bracket">)</span> <span class="variable">port</span>.<span class="function">stop</span><span class="bracket">()</span>;
+  
+  <span class="variable">port</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="class-name">Serial</span><span class="bracket">(</span><span class="keyword">this</span>, <span class="variable">portname</span>, <span class="number">9600</span><span class="bracket">)</span>;
+  
+  <span class="variable">port</span>.<span class="function">bufferUntil</span><span class="bracket">(</span><span class="string">'\n'</span><span class="bracket">)</span>;
+<span class="bracket">}</span>
+
+<span class="keyword">void</span> <span class="function">selectSerialPort</span><span class="bracket">()</span><span class="bracket">{</span>
+  <span class="class-name">String</span> <span class="variable">result</span> <span class="operator">=</span> <span class="bracket">(</span><span class="class-name">String</span><span class="bracket">)</span> <span class="class-name">JOptionPane</span>.<span class="function">showInputDialog</span><span class="bracket">(</span><span class="variable">frame</span>,
+    <span class="string">"Select the COM port on the Arduino board"</span>,
+    <span class="string">"Select serial port"</span>,
+    <span class="class-name">JOptionPane</span>.<span class="constant">QUESTION_MESSAGE</span>,
+    <span class="keyword">null</span>,
+    <span class="class-name">Serial</span>.<span class="function">list</span><span class="bracket">()</span>,
+    <span class="number">0</span><span class="bracket">)</span>;
+    
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">result</span> <span class="operator">!=</span> <span class="keyword">null</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="variable">portname</span> <span class="operator">=</span> <span class="variable">result</span>;
+    <span class="function">openSerialPort</span><span class="bracket">()</span>;
+  <span class="bracket">}</span>
+<span class="bracket">}</span>
+
+<span class="keyword">void</span> <span class="function">setup</span><span class="bracket">()</span><span class="bracket">{</span>
+  <span class="function">size</span><span class="bracket">(</span><span class="number">500</span>, <span class="number">120</span><span class="bracket">)</span>;
+  <span class="function">openSerialPort</span><span class="bracket">()</span>;
+<span class="bracket">}</span>
+
+<span class="keyword">void</span> <span class="function">draw</span><span class="bracket">()</span><span class="bracket">{</span>
+  <span class="function">background</span><span class="bracket">(</span><span class="number">0</span><span class="bracket">)</span>;  
+  <span class="function">fill</span><span class="bracket">(</span><span class="number">255</span><span class="bracket">)</span>;
+  <span class="type">int</span> <span class="variable">y</span> <span class="operator">=</span> <span class="number">24</span>, <span class="variable">dy</span> <span class="operator">=</span> <span class="number">12</span>;
+  <span class="function">text</span><span class="bracket">(</span><span class="string">"Run your CNC machine.."</span>, <span class="number">12</span>, <span class="variable">y</span><span class="bracket">)</span>; <span class="variable">y</span> <span class="operator">+=</span> <span class="variable">dy</span>;
+  <span class="function">text</span><span class="bracket">(</span><span class="string">"p: select serial port"</span>, <span class="number">12</span>, <span class="variable">y</span><span class="bracket">)</span>; <span class="variable">y</span> <span class="operator">+=</span> <span class="variable">dy</span>;
+  <span class="function">text</span><span class="bracket">(</span><span class="string">"g: select G-code file"</span>, <span class="number">12</span>, <span class="variable">y</span><span class="bracket">)</span>; <span class="variable">y</span> <span class="operator">+=</span> <span class="variable">dy</span>;
+  <span class="function">text</span><span class="bracket">(</span><span class="string">"x: stop your CNC machine"</span>, <span class="number">12</span>, <span class="variable">y</span><span class="bracket">)</span>; <span class="variable">y</span> <span class="operator">+=</span> <span class="variable">dy</span>;
+  <span class="variable">y</span> <span class="operator">=</span> <span class="variable">height</span> <span class="operator">-</span> <span class="variable">dy</span>;
+  <span class="function">text</span><span class="bracket">(</span><span class="string">"Powered by AZNAG AYOUB"</span>, <span class="number">12</span>, <span class="variable">y</span><span class="bracket">)</span>; <span class="variable">y</span> <span class="operator">-=</span> <span class="variable">dy</span>;
+  <span class="function">text</span><span class="bracket">(</span><span class="string">"current serial port: "</span> <span class="operator">+</span> <span class="variable">portname</span>, <span class="number">12</span>, <span class="variable">y</span><span class="bracket">)</span>; <span class="variable">y</span> <span class="operator">-=</span> <span class="variable">dy</span>;
+<span class="bracket">}</span>
+
+<span class="keyword">void</span> <span class="function">keyPressed</span><span class="bracket">()</span><span class="bracket">{</span>
+  
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="operator">!</span><span class="variable">streaming</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">key</span> <span class="operator">==</span> <span class="string">'p'</span><span class="bracket">)</span> <span class="function">selectSerialPort</span><span class="bracket">()</span>;
+  <span class="bracket">}</span>
+  
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="operator">!</span><span class="variable">streaming</span> <span class="operator">&amp;&amp;</span> <span class="variable">key</span> <span class="operator">==</span> <span class="string">'g'</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="variable">gcode</span> <span class="operator">=</span> <span class="keyword">null</span>; <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>;
+    <span class="class-name">File</span> <span class="variable">file</span> <span class="operator">=</span> <span class="keyword">null</span>; 
+    <span class="function">println</span><span class="bracket">(</span><span class="string">"Loading file..."</span><span class="bracket">)</span>;
+    <span class="function">selectInput</span><span class="bracket">(</span><span class="string">"Select a file to process:"</span>, <span class="string">"fileSelected"</span>, <span class="variable">file</span><span class="bracket">)</span>;
+  <span class="bracket">}</span>
+  
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">key</span> <span class="operator">==</span> <span class="string">'x'</span><span class="bracket">)</span> <span class="variable">streaming</span> <span class="operator">=</span> <span class="keyword">false</span>;
+<span class="bracket">}</span>
+
+<span class="keyword">void</span> <span class="function">fileSelected</span><span class="bracket">(</span><span class="class-name">File</span> <span class="variable">selection</span><span class="bracket">)</span> <span class="bracket">{</span>
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">selection</span> <span class="operator">==</span> <span class="keyword">null</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="function">println</span><span class="bracket">(</span><span class="string">"Window was closed or the user hit cancel."</span><span class="bracket">)</span>;
+  <span class="bracket">}</span> <span class="keyword">else</span> <span class="bracket">{</span>
+    <span class="function">println</span><span class="bracket">(</span><span class="string">"User selected "</span> <span class="operator">+</span> <span class="variable">selection</span>.<span class="function">getAbsolutePath</span><span class="bracket">()</span><span class="bracket">)</span>;
+    <span class="variable">gcode</span> <span class="operator">=</span> <span class="function">loadStrings</span><span class="bracket">(</span><span class="variable">selection</span>.<span class="function">getAbsolutePath</span><span class="bracket">()</span><span class="bracket">)</span>;
+    <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">gcode</span> <span class="operator">==</span> <span class="keyword">null</span><span class="bracket">)</span> <span class="keyword">return</span>;
+    <span class="variable">streaming</span> <span class="operator">=</span> <span class="keyword">true</span>;
+    <span class="function">stream</span><span class="bracket">()</span>;
+  <span class="bracket">}</span>
+<span class="bracket">}</span>
+
+<span class="keyword">void</span> <span class="function">stream</span><span class="bracket">()</span><span class="bracket">{</span>
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="operator">!</span><span class="variable">streaming</span><span class="bracket">)</span> <span class="keyword">return</span>;
+  
+  <span class="keyword">while</span> <span class="bracket">(</span><span class="keyword">true</span><span class="bracket">)</span> <span class="bracket">{</span>
+    <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">i</span> <span class="operator">==</span> <span class="variable">gcode</span>.<span class="variable">length</span><span class="bracket">)</span> <span class="bracket">{</span>
+      <span class="variable">streaming</span> <span class="operator">=</span> <span class="keyword">false</span>;
+      <span class="keyword">return</span>;
+    <span class="bracket">}</span>
+    
+    <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">gcode</span><span class="bracket">[</span><span class="variable">i</span><span class="bracket">]</span>.<span class="function">trim</span><span class="bracket">()</span>.<span class="function">length</span><span class="bracket">()</span> <span class="operator">==</span> <span class="number">0</span><span class="bracket">)</span> <span class="variable">i</span><span class="operator">++</span>;
+    <span class="keyword">else</span> <span class="keyword">break</span>;
+  <span class="bracket">}</span>
+  
+  <span class="function">println</span><span class="bracket">(</span><span class="variable">gcode</span><span class="bracket">[</span><span class="variable">i</span><span class="bracket">]</span><span class="bracket">)</span>;
+  <span class="variable">port</span>.<span class="function">write</span><span class="bracket">(</span><span class="variable">gcode</span><span class="bracket">[</span><span class="variable">i</span><span class="bracket">]</span> <span class="operator">+</span> <span class="string">'\n'</span><span class="bracket">)</span>;
+  <span class="variable">i</span><span class="operator">++</span>;
+<span class="bracket">}</span>
+
+<span class="keyword">void</span> <span class="function">serialEvent</span><span class="bracket">(</span><span class="class-name">Serial</span> <span class="variable">p</span><span class="bracket">)</span><span class="bracket">{</span>
+  <span class="class-name">String</span> <span class="variable">s</span> <span class="operator">=</span> <span class="variable">p</span>.<span class="function">readStringUntil</span><span class="bracket">(</span><span class="string">'\n'</span><span class="bracket">)</span>;
+  <span class="function">println</span><span class="bracket">(</span><span class="variable">s</span>.<span class="function">trim</span><span class="bracket">()</span><span class="bracket">)</span>;
+  
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">s</span>.<span class="function">trim</span><span class="bracket">()</span>.<span class="function">startsWith</span><span class="bracket">(</span><span class="string">"ok"</span><span class="bracket">)</span><span class="bracket">)</span> <span class="function">stream</span><span class="bracket">()</span>;
+  <span class="keyword">if</span> <span class="bracket">(</span><span class="variable">s</span>.<span class="function">trim</span><span class="bracket">()</span>.<span class="function">startsWith</span><span class="bracket">(</span><span class="string">"error"</span><span class="bracket">)</span><span class="bracket">)</span> <span class="function">stream</span><span class="bracket">()</span>; <span class="comment">// XXX: really?</span>
+<span class="bracket">}</span></code></pre>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>Mini Machine CNC – PFE | Annexe Technique</p>
+    </footer>
+
+    <script>
+        function showCode(codeType) {
+            // Remove active class from all tabs and sections
+            const tabs = document.querySelectorAll('.tab-btn');
+            const sections = document.querySelectorAll('.code-section');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Add active class to selected tab and section
+            if (codeType === 'arduino') {
+                tabs[0].classList.add('active');
+                document.getElementById('arduino-section').classList.add('active');
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('processing-section').classList.add('active');
+            }
+
+            // Scroll to top of code section on mobile
+            if (window.innerWidth <= 768) {
+                window.scrollTo({
+                    top: document.querySelector('.code-section.active').offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        function copyCode(elementId) {
+            const codeElement = document.getElementById(elementId);
+            // Get text content without HTML tags
+            const text = codeElement.innerText || codeElement.textContent;
+            
+            // Try to copy using modern API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showCopyFeedback(event.target);
+                }).catch(function(err) {
+                    console.error('Erreur de copie: ', err);
+                    fallbackCopy(text, event.target);
+                });
+            } else {
+                // Fallback for older browsers or mobile
+                fallbackCopy(text, event.target);
+            }
+        }
+
+        function fallbackCopy(text, button) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showCopyFeedback(button);
+            } catch (err) {
+                console.error('Erreur de copie: ', err);
+                alert('Échec de la copie. Veuillez sélectionner et copier manuellement.');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showCopyFeedback(button) {
+            const originalText = button.textContent;
+            
+            button.textContent = '✓ Copié !';
+            button.classList.add('copied');
+            
+            setTimeout(function() {
+                button.textContent = originalText;
+                button.classList.remove('copied');
+            }, 2500);
+        }
+
+        // Prevent zoom on double tap for better UX
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Performance optimization: Reduce animations on low-end devices
+        if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) {
+            document.documentElement.style.setProperty('--animation-duration', '0.3s');
+        }
+    </script>
+</body>
+</html>
